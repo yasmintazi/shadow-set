@@ -69,16 +69,17 @@ namespace ShadowSet
         public string cause = "";
         public float deadTimer;
         public int deaths;
-        public bool[] mothsGot;
-        public int mothCount;
+        public bool[] keysGot;
+        public int keyCount;
+        public bool atLockedDoor;           // touching the door without all the keys (for the hint)
 
         // things that happened this step, for sounds and effects
-        public bool evJump, evLand, evDie, evWin, evMoth, evSwitch;
+        public bool evJump, evLand, evDie, evWin, evKey, evSwitch;
 
         public Sim(LevelDef level)
         {
             this.level = level;
-            mothsGot = new bool[level.moths.Length];
+            keysGot = new bool[level.keys.Length];
             Restart();
         }
 
@@ -91,6 +92,8 @@ namespace ShadowSet
             time = 0;
             dead = false;
             won = false;
+            keysGot = new bool[level.keys.Length];      // a tumble drops the keys back where they were
+            keyCount = 0;
             cause = "";
             BuildSolids();
         }
@@ -144,7 +147,7 @@ namespace ShadowSet
         // ------------------------------------------------------------ stepping
         public void Step(Controls c)
         {
-            evJump = evLand = evDie = evWin = evMoth = evSwitch = false;
+            evJump = evLand = evDie = evWin = evKey = evSwitch = false;
             if (won) return;
             if (dead)
             {
@@ -182,18 +185,26 @@ namespace ShadowSet
             foreach (Solid s in solids)
                 if (s.thorn && hb.Overlaps(s.box, 0.14f)) { Die("thorns"); return; }
             if (h.y < -2.5f) { Die("fell"); return; }
-            if (InSpotlight()) { Die("spotlight"); return; }
-            for (int i = 0; i < level.moths.Length; i++)
-                if (!mothsGot[i] && hb.Overlaps(level.moths[i])) { mothsGot[i] = true; mothCount++; evMoth = true; }
-            if (hb.Overlaps(level.exit, 0.2f)) { won = true; evWin = true; }
+            if (InHotspot()) { Die("burnt"); return; }
+            for (int i = 0; i < level.keys.Length; i++)
+                if (!keysGot[i] && hb.Overlaps(level.keys[i])) { keysGot[i] = true; keyCount++; evKey = true; }
+            bool unlocked = keyCount >= level.keys.Length;
+            atLockedDoor = hb.Overlaps(level.exit, 0.2f) && !unlocked;
+            if (hb.Overlaps(level.exit, 0.2f) && unlocked) { won = true; evWin = true; }
         }
 
-        // is any of the hero in a spotlight's beam, without gauze shade over all of them?
-        public bool InSpotlight()
+        // is the hero in the lamp's hotspot, without gauze shade over all of them?
+        public bool InHotspot()
         {
+            if (level.hotspot <= 0) return false;
             Box hb = hero.Box;
             bool lit = false;
-            foreach (var sp in level.spots) if (hb.Overlaps(sp.At(time), 0.1f)) { lit = true; break; }
+            foreach (var l in lamps)
+            {
+                float cx = M.Clamp(l.x, hb.x, hb.Right), cy = M.Clamp(l.y, hb.y, hb.Top);
+                float dx = cx - l.x, dy = cy - l.y;
+                if (dx * dx + dy * dy < (level.hotspot - 0.1f) * (level.hotspot - 0.1f)) { lit = true; break; }
+            }
             if (!lit) return false;
             foreach (var sh in shades)
                 if (hb.x >= sh.x - 0.05f && hb.Right <= sh.Right + 0.05f && hb.y >= sh.y - 0.05f && hb.Top <= sh.Top + 0.05f) return false;

@@ -6,7 +6,7 @@ namespace ShadowSet
 {
     public static class Art
     {
-        public static Texture2D Paper, Wood, Card, Thorns, Halo, SoftRect, Glow, Moth, Door, Curtain, Rope, Dots;
+        public static Texture2D Paper, Wood, Card, Thorns, Halo, HotDisc, SoftRect, Glow, Moth, Key, Padlock, Door, Curtain, Rope, Dots;
         public static Texture2D[] Cat;        // idle, run 1, run 2, jump, fall
         static Shader lit, unlit;
 
@@ -30,9 +30,13 @@ namespace ShadowSet
             Card = Make(128, 128, true, (x, y) => { float n = Fbm(x / 128f * 6, y / 128f * 6, 4, 6); float fib = Fbm(x / 128f * 30, y / 128f * 4, 2, 30); float v = 0.82f + 0.12f * n + 0.06f * fib; return new Color(v, v, v, 1); });
             SoftRect = Make(64, 64, false, (x, y) => { float e = Mathf.Min(Mathf.Min(x + 0.5f, 63.5f - x), Mathf.Min(y + 0.5f, 63.5f - y)); return new Color(1, 1, 1, Mathf.Clamp01(e / 2.5f)); });
             Thorns = MakeThorns();
+            // the lamp's burning circle: flat and white-hot inside, with a short soft edge
+            HotDisc = Make(128, 128, false, (x, y) => { float d = Vector2.Distance(new Vector2(x, y), new Vector2(63.5f, 63.5f)) / 64f; float a = Mathf.Clamp01((1 - d) / 0.08f); return new Color(1, 1, 1, a * (0.85f + 0.15f * (1 - d))); });
             Halo = Make(64, 64, false, (x, y) => { float e = Mathf.Min(Mathf.Min(x + 0.5f, 63.5f - x), Mathf.Min(y + 0.5f, 63.5f - y)) / 16f; e = Mathf.Clamp01(e); return new Color(1, 1, 1, e * e * (3 - 2 * e)); });
             Glow = Make(128, 128, false, (x, y) => { float d = Vector2.Distance(new Vector2(x, y), new Vector2(63.5f, 63.5f)) / 64f; float a = Mathf.Clamp01(1 - d); return new Color(1, 1, 1, a * a * a); });
             Moth = MakeMoth();
+            Key = MakeKey();
+            Padlock = MakePadlock();
             Door = MakeDoor();
             Curtain = Make(256, 32, true, (x, y) => { float f = Mathf.Sin(x / 256f * Mathf.PI * 2 * 9 + Mathf.Sin(x / 40f) * 0.6f) * 0.5f + 0.5f; float v = 0.45f + 0.55f * f; return new Color(0.62f * v, 0.06f * v, 0.1f * v, 1); });
             Rope = Make(8, 64, true, (x, y) => { float v = 0.6f + 0.4f * Mathf.Sin((y + x * 2) * 0.8f); return new Color(0.5f * v, 0.45f * v, 0.38f * v, 1); });
@@ -221,7 +225,7 @@ namespace ShadowSet
                 {
                     // gauze: an even, see-through wash with a firmer edge, and the faintest weave
                     float weave = 0.03f * Mathf.Sin(u * 300) * Mathf.Sin(v * 60);
-                    return new Color(1, 1, 1, rim ? 0.85f : 0.6f + weave);
+                    return new Color(1, 1, 1, rim ? 0.9f : 0.78f + weave);
                 }
                 return new Color(shade, shade, shade, 1);
             });
@@ -303,6 +307,39 @@ namespace ShadowSet
                 if (!up ? v > stem && v - stem < reach2 : v < stem && stem - v < reach2) a = 1;
                 if (x < 2 || x > w - 3) a *= 0.5f;
                 return new Color(1, 1, 1, a);
+            });
+        }
+
+        // a golden key: a ring, a shaft and two teeth
+        static Texture2D MakeKey()
+        {
+            return Make(64, 64, false, (x, y) =>
+            {
+                float u = (x - 31.5f) / 32f, v = (y - 31.5f) / 32f;
+                float ring = Mathf.Sqrt(u * u + (v - 0.45f) * (v - 0.45f));
+                bool on = ring < 0.36f && ring > 0.17f;
+                on |= Mathf.Abs(u) < 0.08f && v < 0.12f && v > -0.85f;
+                on |= u > 0 && u < 0.3f && ((v < -0.55f && v > -0.68f) || (v < -0.78f && v > -0.9f));
+                if (!on) return new Color(0, 0, 0, 0);
+                float shine = 0.75f + 0.25f * Mathf.Clamp01(1 - (u + v + 0.5f));
+                return new Color(1f * shine, 0.78f * shine, 0.25f * shine, 1);
+            });
+        }
+
+        // a padlock for the locked door
+        static Texture2D MakePadlock()
+        {
+            return Make(64, 64, false, (x, y) =>
+            {
+                float u = (x - 31.5f) / 32f, v = (y - 31.5f) / 32f;
+                bool body = Mathf.Abs(u) < 0.5f && v < 0.1f && v > -0.7f;
+                float r = Mathf.Sqrt(u * u + (v - 0.1f) * (v - 0.1f));
+                bool shackle = v > 0.1f && r < 0.4f && r > 0.25f;
+                bool hole = Mathf.Abs(u) < 0.07f && v < -0.15f && v > -0.45f;
+                if (hole) return new Color(0.15f, 0.1f, 0.05f, 1);
+                if (body) return new Color(0.85f, 0.65f, 0.25f, 1);
+                if (shackle) return new Color(0.7f, 0.7f, 0.72f, 1);
+                return new Color(0, 0, 0, 0);
             });
         }
 

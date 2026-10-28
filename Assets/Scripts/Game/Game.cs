@@ -22,7 +22,7 @@ namespace ShadowSet
         Vector3 lastMouse;
         bool keyboardLamp;
         bool jumpQueued, switchQueued;
-        int totalDeaths, totalMoths;
+        int totalDeaths;
         float levelTime;
         GUIStyle big, mid, key;
         string shotPath; int shotFrames = -1;
@@ -233,7 +233,7 @@ namespace ShadowSet
                     lastMouse = Input.mousePosition;
                 }
                 Events();
-                if (sim.won) { state = State.Cleared; stateTime = 0; totalDeaths += sim.deaths; totalMoths += sim.mothCount; PlayerPrefs.SetInt("reached", Mathf.Max(PlayerPrefs.GetInt("reached", 0), Mathf.Min(levelIndex + 1, Levels.All.Length - 1))); SaveMoths(); break; }
+                if (sim.won) { state = State.Cleared; stateTime = 0; totalDeaths += sim.deaths; PlayerPrefs.SetInt("reached", Mathf.Max(PlayerPrefs.GetInt("reached", 0), Mathf.Min(levelIndex + 1, Levels.All.Length - 1))); break; }
             }
             if (steps == 24) acc = 0;
         }
@@ -242,7 +242,7 @@ namespace ShadowSet
         {
             if (sim.evJump) sfx.Jump();
             if (sim.evLand) sfx.Land();
-            if (sim.evMoth) sfx.Moth();
+            if (sim.evKey) sfx.Moth();      // the key chime
             if (sim.evSwitch) sfx.Swap();
             if (sim.evWin) sfx.Win();
             if (sim.evDie)
@@ -251,13 +251,6 @@ namespace ShadowSet
                 view.Burst(new Color(0.1f, 0.08f, 0.14f), 22, 7);
                 view.Shake(1);
             }
-        }
-
-        void SaveMoths()
-        {
-            string key = "moths" + levelIndex;
-            PlayerPrefs.SetInt(key, Mathf.Max(PlayerPrefs.GetInt(key, 0), sim.mothCount));
-            PlayerPrefs.Save();
         }
 
         void Sync(float dt)
@@ -343,8 +336,6 @@ namespace ShadowSet
                     key.fontSize = (int)(3 * u);
                     if (GUI.Button(r, (i + 1).ToString(), key)) StartLevel(i);
                     GUI.enabled = true;
-                    int got = PlayerPrefs.GetInt("moths" + i, 0), of = Levels.All[i].moths.Length;
-                    if (of > 0) Text(new Rect(r.x, r.yMax, bw, 3 * u), got >= of ? "moth ✓" : "", mid, gold, (int)(1.6f * u));
                 }
                 Text(new Rect(0, H * 0.92f, W, 4 * u), "M: sound " + (Sfx.Muted ? "off" : "on") + "      Esc: pause", mid, cream, (int)(1.8f * u), 0.6f);
                 return;
@@ -355,7 +346,7 @@ namespace ShadowSet
                 Dim(0.5f);
                 Text(new Rect(0, H * 0.25f, W, 12 * u), "Curtain call", big, cream, (int)(9 * u));
                 Text(new Rect(0, H * 0.42f, W, 5 * u), "You made it through every scene.", mid, gold, (int)(3.2f * u));
-                Text(new Rect(0, H * 0.5f, W, 5 * u), "Tumbles: " + totalDeaths + "      Moths found: " + totalMoths, mid, cream, (int)(2.6f * u));
+                Text(new Rect(0, H * 0.5f, W, 5 * u), "Tumbles: " + totalDeaths, mid, cream, (int)(2.6f * u));
                 if (stateTime > 1.5f) Text(new Rect(0, H * 0.62f, W, 5 * u), "Press Space", mid, gold, (int)(2.6f * u), 0.6f + 0.4f * Mathf.Sin(Time.time * 3));
                 return;
             }
@@ -363,7 +354,7 @@ namespace ShadowSet
             // scene title and tips while it starts
             var level = sim.level;
             Text(new Rect(2 * u, 1.5f * u, W, 4 * u), "<b>Scene " + (levelIndex + 1) + "</b>  ·  " + level.name, new GUIStyle(mid) { alignment = TextAnchor.UpperLeft }, cream, (int)(2.6f * u));
-            string right = "tumbles " + sim.deaths + (level.moths.Length > 0 ? "     moths " + sim.mothCount + "/" + level.moths.Length : "");
+            string right = "tumbles " + sim.deaths + (level.keys.Length > 0 ? "     keys " + sim.keyCount + "/" + level.keys.Length : "");
             Text(new Rect(0, 1.5f * u, W - 2 * u, 4 * u), right, new GUIStyle(mid) { alignment = TextAnchor.UpperRight }, cream, (int)(2.2f * u), 0.8f);
 
             float tipAlpha = Mathf.Clamp01(1 - (tipTime - 7) / 1.5f) * Mathf.Clamp01(tipTime * 3);
@@ -378,15 +369,17 @@ namespace ShadowSet
             if (level.lamps.Length > 1) controls = "Mouse: lamp    Right click / Tab: other lamp    A D: run    Space: jump    Shift: see the light    R: restart";
             Text(new Rect(0, H - 4.5f * u, W, 4 * u), controls, mid, cream, (int)(1.9f * u), 0.55f);
 
+            if (sim.atLockedDoor)
+                Text(new Rect(0, H * 0.4f, W, 8 * u), "Locked! Find every key first (" + sim.keyCount + "/" + level.keys.Length + ")", big, new Color(1, 0.8f, 0.4f), (int)(3.6f * u));
             if (sim.dead)
-                Text(new Rect(0, H * 0.4f, W, 8 * u), sim.cause == "squashed" ? "Squashed!" : sim.cause == "thorns" ? "Ouch, thorns!" : sim.cause == "spotlight" ? "Burnt by the spotlight!" : "Off the edge!", big, new Color(1, 0.55f, 0.45f), (int)(5 * u), Mathf.Clamp01(sim.deadTimer * 3));
+                Text(new Rect(0, H * 0.4f, W, 8 * u), sim.cause == "squashed" ? "Squashed!" : sim.cause == "thorns" ? "Ouch, thorns!" : sim.cause == "burnt" ? "Scorched by the lamp!" : "Off the edge!", big, new Color(1, 0.55f, 0.45f), (int)(5 * u), Mathf.Clamp01(sim.deadTimer * 3));
 
             if (state == State.Cleared)
             {
                 float a = Mathf.Clamp01(stateTime * 3);
                 Dim(0.35f * a);
                 Text(new Rect(0, H * 0.33f, W, 10 * u), "Bravo!", big, cream, (int)(8 * u), a);
-                Text(new Rect(0, H * 0.46f, W, 5 * u), levelTime.ToString("0.0") + " seconds    ·    " + sim.deaths + (sim.deaths == 1 ? " tumble" : " tumbles") + (level.moths.Length > 0 ? "    ·    moths " + sim.mothCount + "/" + level.moths.Length : ""), mid, gold, (int)(2.8f * u), a);
+                Text(new Rect(0, H * 0.46f, W, 5 * u), levelTime.ToString("0.0") + " seconds    ·    " + sim.deaths + (sim.deaths == 1 ? " tumble" : " tumbles"), mid, gold, (int)(2.8f * u), a);
             }
 
             if (pauseFade > 0)

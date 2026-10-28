@@ -41,7 +41,7 @@ namespace ShadowSet.Tools
                 {
                     if (only >= 0 && b.level != only) continue;
                     var r = b.Run();
-                    bool pass = r.won == b.shouldWin && (!b.allMoths || r.sim.mothCount == r.sim.level.moths.Length);
+                    bool pass = r.won == b.shouldWin;
                     ok &= pass;
                     Console.WriteLine((pass ? "ok   " : "FAIL ") + "level " + (b.level + 1) + " " + b.name + ": " + r.summary);
                     if (!pass && r.sim != null) Draw(r.sim, null).Save("fail_" + b.level + "_" + b.name.Replace(' ', '_') + ".png");
@@ -105,7 +105,7 @@ namespace ShadowSet.Tools
                 }
             var e = level.exit;
             c.Rect(PX(e.x), PY(e.Top), PX(e.Right), PY(e.y), 0x30B060, 0.8f);
-            foreach (var m in level.moths) c.Dot(PX(m.Center.x), PY(m.Center.y), 7, 0xE0B020);
+            foreach (var m in level.keys) c.Dot(PX(m.Center.x), PY(m.Center.y), 7, 0xE0B020);
             // the lamps and where they can go
             for (int i = 0; i < sim.lamps.Length; i++)
             {

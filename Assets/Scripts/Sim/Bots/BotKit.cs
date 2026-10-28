@@ -17,7 +17,6 @@ namespace ShadowSet.Tools
         public int level;
         public string name;
         public bool shouldWin = true;
-        public bool allMoths;                   // this run must catch every moth too
         public List<StepFn> steps = new List<StepFn>();
         public float lx = -1, ly = -1, ld;      // where the bot wants the lamp
         public bool sw;                         // switch lamps this tick
@@ -50,7 +49,7 @@ namespace ShadowSet.Tools
 
         public static Bot Solution(int level)
         {
-            foreach (var b in Bots.All) if (b.level == level && b.shouldWin && !b.allMoths) return b;
+            foreach (var b in Bots.All) if (b.level == level && b.shouldWin) return b;
             return null;
         }
 
@@ -62,7 +61,7 @@ namespace ShadowSet.Tools
             {
                 sim.Step(Next(sim, t));
                 if (Trace && (t % 6 == 0 || TraceAll)) Console.WriteLine("  t" + (t / 120f).ToString("0.00") + " step " + step + " hero " + sim.hero.Box + (sim.hero.grounded ? " g" + sim.hero.groundLamp + ":" + sim.hero.groundProp : "") + " lamp " + L(sim));
-                if (sim.won) return new Result { won = true, summary = "won in " + (t / 120f).ToString("0.0") + "s, moths " + sim.mothCount + "/" + sim.level.moths.Length + "   " + string.Join(" ", log), sim = sim };
+                if (sim.won) return new Result { won = true, summary = "won in " + (t / 120f).ToString("0.0") + "s, moths " + sim.keyCount + "/" + sim.level.keys.Length + "   " + string.Join(" ", log), sim = sim };
                 if (sim.dead) return new Result { won = false, summary = "died (" + sim.cause + ") at step " + step + " t=" + (t / 120f).ToString("0.0") + " hero " + sim.hero.Box + " lamp " + L(sim) + "   " + string.Join(" ", log), sim = sim };
             }
             return new Result { won = false, summary = "timed out at step " + step + " hero " + sim.hero.Box + " lamp " + L(sim) + "   " + string.Join(" ", log), sim = sim };

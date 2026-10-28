@@ -11,7 +11,7 @@ namespace ShadowSet
         public float depth;                 // how far in front of the wall it hangs
         public Box[] parts;                 // its pieces, in wall coordinates, as if pressed flat on the wall
         public bool thorn;                  // a spiky cut-out: its shadow is deadly instead of solid
-        public bool gauze;                  // see-through gauze: its shadow isn't solid, but it's shade from spotlights
+        public bool gauze;                  // see-through gauze: its shadow isn't solid, but it's shade from the lamp's hotspot
         public V2 swing;                    // props on a motor sway back and forth by this much...
         public float period;                // ...taking this long for a full swing (0 = it doesn't move)
         public float phase;                 // ...starting this far through the swing (0 to 1)
@@ -21,21 +21,6 @@ namespace ShadowSet
         {
             if (period <= 0) return new V2(0, 0);
             return swing * M.Sin(M.TAU * (time / period + phase));
-        }
-    }
-
-    // a stage spotlight's beam on the wall. the hero is a shadow, so bright light burns them,
-    // unless they're standing in the shade of a gauze cut-out. some spotlights sweep about
-    public class SpotDef
-    {
-        public Box box;
-        public V2 swing;
-        public float period, phase;
-        public Box At(float time)
-        {
-            if (period <= 0) return box;
-            V2 o = swing * M.Sin(M.TAU * (time / period + phase));
-            return new Box(box.x + o.x, box.y + o.y, box.w, box.h);
         }
     }
 
@@ -57,11 +42,13 @@ namespace ShadowSet
         public string name;
         public string[] tips = new string[0];   // shown at the start, one line per new idea
         public V2 start;                        // the hero's feet
-        public Box exit;                        // the doorway out
+        public Box exit;                        // the doorway out: locked until you've got every key
         public Box[] shelves = new Box[0];      // wooden shelves nailed to the wall: solid, and never move
         public PropDef[] props = new PropDef[0];
         public LampDef[] lamps;
-        public Box[] moths = new Box[0];        // optional collectibles, drawn as moths on the wall
-        public SpotDef[] spots = new SpotDef[0];
+        public Box[] keys = new Box[0];        // optional collectibles, drawn as moths on the wall
+        // in some scenes the lamp burns: the bright circle on the wall right in front of the bulb
+        // scorches the cat (who is a shadow), unless a gauze cut-out's shade is over them
+        public float hotspot;
     }
 }

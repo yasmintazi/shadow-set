@@ -18,7 +18,7 @@ shadows, or zoom a scrap of card into a bridge. You do all of this while running
 
 ![Title](Screenshots/title.png)
 
-## Eleven scenes, one idea each
+## Ten scenes, one idea each
 
 | Scene | Name | What it teaches |
 |---|---|---|
@@ -27,20 +27,18 @@ shadows, or zoom a scrap of card into a bridge. You do all of this while running
 | 3 | Free Hand | The lamp goes anywhere. One shadow gets you over the wall, a slower one gets you under the beam. |
 | 4 | Parallax | Four stepping stones at four depths slide at four speeds. Line each one up with the next. |
 | 5 | Bramble | Thorny cut-outs throw deadly, glowing red shadows. Hung near the wall they hardly move: steer your lift through the maze. |
-| 6 | Limelight | The cat is a shadow, so spotlights burn it. Gauze veils throw shade that isn't solid: park it over one beam, carry it across the next, then ride a boat with its own canopy over the pit. |
+| 6 | Limelight | The lamp burns: the white-hot circle in front of the bulb scorches the cat, who is a shadow. Riding the bridge carries you through it, so stand under the gauze veil, which hangs in front of the bulb and throws shade across the hot circle. |
 | 7 | Close-Up | Scroll the lamp nearer: a plank becomes a bridge, a scrap becomes a lift. Keep to the middle as it swells, or the thorns get you. |
 | 8 | Double Act | Two lamps, each throwing its own shadow. Park one to hold a shadow still, carry on with the other. |
 | 9 | Clockwork | Cut-outs on motors swing by themselves. Time it, or nudge the lamp to steady them. |
-| 10 | Follow Spot | A spotlight sweeps the whole wall. Climb, hiding under the veil's shade as it passes, and jump only once it's gone by. |
-| 11 | Grand Finale | Three rooms: zoom, move, time, steer. |
+| 10 | Grand Finale | Three rooms: zoom, move, time, steer. |
 
-Every scene hides **three moths** in risky optional spots: under a shelf you have to ride beneath, on top of a post,
-inside a spotlight where only a short hop keeps you in the shade, at the very top of a swelling lift.
+**Every scene has three keys, and the door stays padlocked until you have all of them.** They hang where getting them takes thought and timing: under a shelf you can only ride beneath, on top of the ceiling of a lift shaft, inside the lamp's hot circle where only a short hop keeps you in the shade, at the top of a swing, on top of a lift that swells as you zoom in.
 
 | | |
 |---|---|
 | ![Parallax](Screenshots/parallax.png) | ![Bramble](Screenshots/bramble.png) |
-| ![Limelight](Screenshots/limelight.png) | ![Follow Spot](Screenshots/follow-spot.png) |
+| ![Limelight](Screenshots/limelight.png) | ![Curtain Up: keys and the locked door](Screenshots/curtain-up.png) |
 | ![Close-Up, peeking at the light](Screenshots/close-up-peek.png) | ![Grand Finale](Screenshots/finale.png) |
 
 ## Controls
@@ -85,10 +83,10 @@ up, or outwards as it grows. A shadow sweeping into you pushes you, and if there
 types. It steps at a fixed 120 Hz, so it plays the same at any frame rate, and Unity only draws it and reads the
 controls (`Assets/Scripts/Game`).
 
-**Every level is tested by bots** (36 runs in all). `Tools/SimTest` compiles the simulation on its own, using the Mono that ships
+**Every level is tested by bots** (32 runs in all). `Tools/SimTest` compiles the simulation on its own, using the Mono that ships
 with Unity, and plays:
-- **a scripted solution for every scene**, to prove it can be finished
-- **a run that catches all three moths in every scene**, to prove none of them is out of reach
+- **a scripted solution for every scene** that collects all three keys, to prove it can be finished
+- **the old route straight to the door, without the keys**, which must now be stuck at the padlock
 - **cheats that must fail** (jumping gaps without lining the stones up, going straight across the bramble,
   zooming without keeping to the middle, using only one lamp...), to prove each scene's idea is actually needed
 
@@ -101,8 +99,8 @@ Tools/SimTest/build.sh && mono Tools/SimTest/SimTest.exe bots
 
 | Path | What's in it |
 |---|---|
-| `Assets/Scripts/Sim/Sim.cs` | lamps, shadows, the hero's movement, riding, squashing, thorns, spotlights and gauze shade |
-| `Assets/Scripts/Sim/Levels.cs` | the eleven scenes, with the shadow maths in the header |
+| `Assets/Scripts/Sim/Sim.cs` | lamps, shadows, the hero's movement, riding, squashing, thorns, keys, the lamp's hotspot and gauze shade |
+| `Assets/Scripts/Sim/Levels.cs` | the ten scenes, with the shadow maths in the header |
 | `Assets/Scripts/Sim/Bots/` | the scripted solutions and the cheats that must fail |
 | `Assets/Scripts/Game/` | the theatre (View), the menus and controls (Game), procedural art (Art), synthesised sound (Sfx) |
 | `Assets/Resources/Shaders/` | lamp lighting on everything, and multiply-blended shadows on the paper |

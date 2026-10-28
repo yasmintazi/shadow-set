@@ -1,5 +1,5 @@
 // builds the little theatre (the paper wall, the stage, curtains, the lamp) and, for each
-// level, the cut-outs, shelves, door and moths. every frame it moves everything to match
+// level, the cut-outs, shelves, door and keys. every frame it moves everything to match
 // the simulation, and redraws the shadows from where the lamp is.
 // wall coordinates (x 0-32, y 0-18) map to the world as (x - 16, y, -depth)
 using System.Collections.Generic;
@@ -16,13 +16,14 @@ namespace ShadowSet
         readonly List<MeshRenderer> shadowRenderers = new List<MeshRenderer>();
         readonly List<GameObject> propObjects = new List<GameObject>();
         readonly List<Material> propMats = new List<Material>();
-        readonly List<Transform> moths = new List<Transform>();
+        readonly List<Transform> keyQuads = new List<Transform>();
         readonly List<Transform> spotQuads = new List<Transform>(), spotCores = new List<Transform>();
         readonly List<Transform> thornHalos = new List<Transform>();      // a pulsing red warning round every thorny shadow
         Material haloMat;
         readonly List<LineRenderer> rays = new List<LineRenderer>();
         LampView[] lampViews = new LampView[0];
-        Transform hero, door, doorGlow;
+        Transform hero, door, doorGlow, padlock;
+        float unlockFlash;
         MeshRenderer heroRenderer;
         Sim sim;
         float shake;
@@ -94,7 +95,7 @@ namespace ShadowSet
             rigMat = Art.Unlit(Art.Dots, new Color(1, 0.75f, 0.4f, 0.22f), Art.Blend.Add, 3050);
             rayMat = Art.Unlit(Texture2D.whiteTexture, new Color(1, 0.85f, 0.5f, 0.25f), Art.Blend.Add, 3060);
             doorMat = Art.Unlit(Art.Door, new Color(1, 0.95f, 0.8f, 1), Art.Blend.Alpha, 2950);
-            mothMat = Art.Unlit(Art.Moth, new Color(1, 0.95f, 0.85f, 1), Art.Blend.Alpha, 3090);
+            mothMat = Art.Unlit(Art.Key, Color.white, Art.Blend.Alpha, 3090);
             edgeMat = Art.Lit(Texture2D.whiteTexture, new Color(0.25f, 0.18f, 0.12f, 0.8f), true, 0.6f);
             edgeMat.renderQueue = 2995;
 
@@ -113,7 +114,7 @@ namespace ShadowSet
             if (!shadowMats.TryGetValue(p.look, out m))
                 // gauze shade is a cool blue wash, drawn over the spotlights so it visibly blocks them
                 shadowMats[p.look] = m = p.gauze
-                    ? Art.Unlit(Art.Prop(p.look), new Color(0.3f, 0.38f, 0.72f, 1), Art.Blend.Multiply, 2905)
+                    ? Art.Unlit(Art.Prop(p.look), new Color(0.1f, 0.13f, 0.32f, 1), Art.Blend.Multiply, 2905)
                     : Art.Unlit(Art.Prop(p.look), shadowMat.color, Art.Blend.Multiply, 2900);
             return m;
         }
@@ -142,7 +143,7 @@ namespace ShadowSet
             levelRoot = new GameObject("Level").transform;
             levelRoot.SetParent(transform, false);
             foreach (var t in shadowQuads) Destroy(t.gameObject);
-            shadowQuads.Clear(); shadowRenderers.Clear(); propObjects.Clear(); propMats.Clear(); moths.Clear(); rays.Clear();
+            shadowQuads.Clear(); shadowRenderers.Clear(); propObjects.Clear(); propMats.Clear(); keyQuads.Clear(); rays.Clear();
             foreach (var p in particles) Destroy(p.t.gameObject);
             particles.Clear();
             var level = s.level;
@@ -189,15 +190,15 @@ namespace ShadowSet
                 shadowRenderers.Add(q.GetComponent<MeshRenderer>());
             }
 
-            // the spotlights: a hot white glow on the wall, too bright for a shadow to survive
+            // a burning lamp: a hot white circle on the wall in front of each bulb, too bright for
+            // a shadow to survive. drawn under the shadows, so gauze shade visibly dims it
             spotQuads.Clear(); spotCores.Clear(); thornHalos.Clear();
-            foreach (var sp in level.spots)
-            {
-                var q = Art.Quad("Spotlight", levelRoot, Art.Unlit(Art.Halo, new Color(1, 0.93f, 0.75f, 0.75f), Art.Blend.Add, 2880), true);
-                spotQuads.Add(q.transform);
-                var core = Art.Quad("SpotCore", levelRoot, Art.Unlit(Art.Glow, new Color(1, 0.97f, 0.85f, 0.5f), Art.Blend.Add, 2881));
-                spotCores.Add(core.transform);
-            }
+            if (level.hotspot > 0)
+                foreach (var l in level.lamps)
+                {
+                    spotQuads.Add(Art.Quad("Hotspot", levelRoot, Art.Unlit(Art.HotDisc, new Color(1, 0.93f, 0.75f, 0.7f), Art.Blend.Add, 2880)).transform);
+                    spotCores.Add(Art.Quad("HotspotGlow", levelRoot, Art.Unlit(Art.Glow, new Color(1, 0.75f, 0.4f, 0.45f), Art.Blend.Add, 2881)).transform);
+                }
             haloMat = Art.Unlit(Art.Halo, new Color(1, 0.12f, 0.08f, 0.5f), Art.Blend.Add, 2899);
             for (int li = 0; li < level.lamps.Length; li++)
                 foreach (var p in level.props)
@@ -210,16 +211,21 @@ namespace ShadowSet
             doorGlow = Art.Quad("DoorGlow", levelRoot, Art.Unlit(Art.Glow, new Color(1, 0.85f, 0.55f, 0.5f), Art.Blend.Add, 3210)).transform;
             doorGlow.position = W(level.exit.Center.x, level.exit.Center.y, 0.05f);
             doorGlow.localScale = Vector3.one * 5;
+            // until every key is found, the door is dark and padlocked
+            padlock = Art.Quad("Padlock", levelRoot, Art.Unlit(Art.Padlock, Color.white, Art.Blend.Alpha, 3095)).transform;
+            padlock.position = W(level.exit.Center.x, level.exit.y + level.exit.h * 0.45f, 0.06f);
+            padlock.localScale = Vector3.one * 0.9f;
+            unlockFlash = 0;
 
-            foreach (var m in level.moths)
+            foreach (var m in level.keys)
             {
-                var q = Art.Quad("Moth", levelRoot, mothMat);
+                var q = Art.Quad("Key", levelRoot, mothMat);
                 q.transform.position = W(m.Center.x, m.Center.y, 0.03f);
-                q.transform.localScale = Vector3.one * 0.9f;
-                var halo = Art.Quad("MothGlow", q.transform, Art.Unlit(Art.Glow, new Color(1, 0.9f, 0.6f, 0.35f), Art.Blend.Add, 3085));
+                q.transform.localScale = Vector3.one * 1.1f;
+                var halo = Art.Quad("KeyGlow", q.transform, Art.Unlit(Art.Glow, new Color(1, 0.8f, 0.3f, 0.45f), Art.Blend.Add, 3085));
                 halo.transform.localPosition = new Vector3(0, 0, 0.01f);
                 halo.transform.localScale = Vector3.one * 2.2f;
-                moths.Add(q.transform);
+                keyQuads.Add(q.transform);
             }
 
             // the lamps
@@ -362,12 +368,11 @@ namespace ShadowSet
             // spotlights (some of them sweep about), and the thorns' warning glow
             for (int i = 0; i < spotQuads.Count; i++)
             {
-                var b = level.spots[i].At(time);
-                float pad = 0.5f;
-                spotQuads[i].position = W(b.x - pad, b.y - pad, 0.02f);
-                spotQuads[i].localScale = new Vector3(b.w + 2 * pad, b.h + 2 * pad, 1);
-                spotCores[i].position = W(b.Center.x, b.Center.y, 0.025f);
-                spotCores[i].localScale = new Vector3(b.w * 1.3f, b.h * 1.1f, 1);
+                float r = level.hotspot, flick = 1 + Mathf.Sin(Time.time * 17 + i) * 0.015f;
+                spotQuads[i].position = W(lamps[i].x, lamps[i].y, 0.02f);
+                spotQuads[i].localScale = Vector3.one * (2 * r * 1.08f * flick);
+                spotCores[i].position = W(lamps[i].x, lamps[i].y, 0.025f);
+                spotCores[i].localScale = Vector3.one * (4.2f * r);
             }
             int hi = 0;
             for (int li = 0; li < lamps.Length; li++)
@@ -424,20 +429,35 @@ namespace ShadowSet
             hero.localScale = new Vector3(size * h.facing * (2 - squash), size * squash, 1);
             heroRenderer.enabled = !sim.dead && !sim.won;
 
-            // moths flutter where they are until you catch them
-            for (int i = 0; i < moths.Count; i++)
+            // keys bob and turn on their string until you grab them, then shoot off to the door
+            for (int i = 0; i < keyQuads.Count; i++)
             {
-                var m = level.moths[i];
-                bool got = sim.mothsGot[i];
-                var t = moths[i];
-                if (got) { t.localScale = Vector3.Lerp(t.localScale, Vector3.zero, dt * 8); continue; }
+                var m = level.keys[i];
+                bool got = sim.keysGot[i];
+                Transform kt = keyQuads[i];
+                if (got)
+                {
+                    kt.position = Vector3.Lerp(kt.position, padlock.position, dt * 6);
+                    kt.localScale = Vector3.Lerp(kt.localScale, Vector3.zero, dt * 5);
+                    continue;
+                }
                 float ph = i * 1.7f;
-                t.position = W(m.Center.x + Mathf.Sin(Time.time * 1.3f + ph) * 0.25f, m.Center.y + Mathf.Sin(Time.time * 2.1f + ph) * 0.2f, 0.03f);
-                t.localScale = new Vector3(1.2f * (0.45f + 0.55f * Mathf.Abs(Mathf.Sin(Time.time * 11 + ph))), 1.2f, 1);
+                kt.position = W(m.Center.x, m.Center.y + Mathf.Sin(Time.time * 2 + ph) * 0.15f, 0.03f);
+                kt.localScale = new Vector3(1.1f * Mathf.Cos(Time.time * 1.5f + ph), 1.1f, 1);
             }
 
+            // the door: dark and padlocked until the last key, then it lights up
+            bool open = sim.keyCount >= level.keys.Length;
+            if (open && padlock.gameObject.activeSelf) { padlock.gameObject.SetActive(false); unlockFlash = 1; }
+            if (!open && !padlock.gameObject.activeSelf) padlock.gameObject.SetActive(true);
+            unlockFlash = Mathf.Max(0, unlockFlash - dt * 1.5f);
+            doorMat.color = open ? Color.white : new Color(0.32f, 0.3f, 0.36f, 1);
+            doorGlow.gameObject.SetActive(open);
             doorGlow.rotation = Quaternion.identity;
-            doorGlow.localScale = Vector3.one * (4.5f + Mathf.Sin(Time.time * 2) * 0.4f);
+            doorGlow.localScale = Vector3.one * (4.5f + Mathf.Sin(Time.time * 2) * 0.4f + unlockFlash * 6);
+            padlock.localPosition = padlock.localPosition + new Vector3(0, 0, 0);
+            if (sim.atLockedDoor) padlock.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(Time.time * 40) * 12);
+            else padlock.localRotation = Quaternion.identity;
 
             // particles and camera shake
             for (int i = particles.Count - 1; i >= 0; i--)
