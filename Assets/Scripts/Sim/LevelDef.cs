@@ -11,7 +11,6 @@ namespace ShadowSet
         public float depth;                 // how far in front of the wall it hangs
         public Box[] parts;                 // its pieces, in wall coordinates, as if pressed flat on the wall
         public bool thorn;                  // a spiky cut-out: its shadow is deadly instead of solid
-        public bool gauze;                  // see-through gauze: its shadow isn't solid, but it's shade from the lamp's hotspot
         public V2 swing;                    // props on a motor sway back and forth by this much...
         public float period;                // ...taking this long for a full swing (0 = it doesn't move)
         public float phase;                 // ...starting this far through the swing (0 to 1)
@@ -47,8 +46,5 @@ namespace ShadowSet
         public PropDef[] props = new PropDef[0];
         public LampDef[] lamps;
         public Box[] keys = new Box[0];        // optional collectibles, drawn as moths on the wall
-        // in some scenes the lamp burns: the bright circle on the wall right in front of the bulb
-        // scorches the cat (who is a shadow), unless a gauze cut-out's shade is over them
-        public float hotspot;
     }
 }

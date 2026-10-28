@@ -64,7 +64,6 @@ namespace ShadowSet
         public Hero hero = new Hero();
         public float time;
         public readonly List<Solid> solids = new List<Solid>();
-        public readonly List<Box> shades = new List<Box>();     // gauze shadows: not solid, but shade
         public bool won, dead;
         public string cause = "";
         public float deadTimer;
@@ -127,7 +126,6 @@ namespace ShadowSet
         public void BuildSolids()
         {
             solids.Clear();
-            shades.Clear();
             // the frame of the wall: the sides and the top. the bottom is open: below the wall is the dark stage
             solids.Add(new Solid { box = new Box(-10, -40, 10, 80), lamp = -1, prop = -1 });
             solids.Add(new Solid { box = new Box(WALL_W, -40, 10, 80), lamp = -1, prop = -1 });
@@ -138,7 +136,6 @@ namespace ShadowSet
                 for (int pi = 0; pi < level.props.Length; pi++)
                 {
                     PropDef p = level.props[pi];
-                    if (p.gauze) { for (int k = 0; k < p.parts.Length; k++) shades.Add(ShadowOf(lamps[li], p, p.parts[k], time)); continue; }
                     for (int k = 0; k < p.parts.Length; k++)
                         solids.Add(new Solid { box = ShadowOf(lamps[li], p, p.parts[k], time), lamp = li, prop = pi, part = k, thorn = p.thorn });
                 }
@@ -185,30 +182,11 @@ namespace ShadowSet
             foreach (Solid s in solids)
                 if (s.thorn && hb.Overlaps(s.box, 0.14f)) { Die("thorns"); return; }
             if (h.y < -2.5f) { Die("fell"); return; }
-            if (InHotspot()) { Die("burnt"); return; }
             for (int i = 0; i < level.keys.Length; i++)
                 if (!keysGot[i] && hb.Overlaps(level.keys[i])) { keysGot[i] = true; keyCount++; evKey = true; }
             bool unlocked = keyCount >= level.keys.Length;
             atLockedDoor = hb.Overlaps(level.exit, 0.2f) && !unlocked;
             if (hb.Overlaps(level.exit, 0.2f) && unlocked) { won = true; evWin = true; }
-        }
-
-        // is the hero in the lamp's hotspot, without gauze shade over all of them?
-        public bool InHotspot()
-        {
-            if (level.hotspot <= 0) return false;
-            Box hb = hero.Box;
-            bool lit = false;
-            foreach (var l in lamps)
-            {
-                float cx = M.Clamp(l.x, hb.x, hb.Right), cy = M.Clamp(l.y, hb.y, hb.Top);
-                float dx = cx - l.x, dy = cy - l.y;
-                if (dx * dx + dy * dy < (level.hotspot - 0.1f) * (level.hotspot - 0.1f)) { lit = true; break; }
-            }
-            if (!lit) return false;
-            foreach (var sh in shades)
-                if (hb.x >= sh.x - 0.05f && hb.Right <= sh.Right + 0.05f && hb.y >= sh.y - 0.05f && hb.Top <= sh.Top + 0.05f) return false;
-            return true;
         }
 
         void MoveLamp(Controls c)

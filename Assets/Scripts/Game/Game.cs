@@ -372,7 +372,7 @@ namespace ShadowSet
             if (sim.atLockedDoor)
                 Text(new Rect(0, H * 0.4f, W, 8 * u), "Locked! Find every key first (" + sim.keyCount + "/" + level.keys.Length + ")", big, new Color(1, 0.8f, 0.4f), (int)(3.6f * u));
             if (sim.dead)
-                Text(new Rect(0, H * 0.4f, W, 8 * u), sim.cause == "squashed" ? "Squashed!" : sim.cause == "thorns" ? "Ouch, thorns!" : sim.cause == "burnt" ? "Scorched by the lamp!" : "Off the edge!", big, new Color(1, 0.55f, 0.45f), (int)(5 * u), Mathf.Clamp01(sim.deadTimer * 3));
+                Text(new Rect(0, H * 0.4f, W, 8 * u), sim.cause == "squashed" ? "Squashed!" : sim.cause == "thorns" ? "Ouch, thorns!" : "Off the edge!", big, new Color(1, 0.55f, 0.45f), (int)(5 * u), Mathf.Clamp01(sim.deadTimer * 3));
 
             if (state == State.Cleared)
             {

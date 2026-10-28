@@ -17,7 +17,6 @@ namespace ShadowSet
         readonly List<GameObject> propObjects = new List<GameObject>();
         readonly List<Material> propMats = new List<Material>();
         readonly List<Transform> keyQuads = new List<Transform>();
-        readonly List<Transform> spotQuads = new List<Transform>(), spotCores = new List<Transform>();
         readonly List<Transform> thornHalos = new List<Transform>();      // a pulsing red warning round every thorny shadow
         Material haloMat;
         readonly List<LineRenderer> rays = new List<LineRenderer>();
@@ -112,10 +111,7 @@ namespace ShadowSet
             if (p.thorn) return thornShadowMat;
             Material m;
             if (!shadowMats.TryGetValue(p.look, out m))
-                // gauze shade is a cool blue wash, drawn over the spotlights so it visibly blocks them
-                shadowMats[p.look] = m = p.gauze
-                    ? Art.Unlit(Art.Prop(p.look), new Color(0.1f, 0.13f, 0.32f, 1), Art.Blend.Multiply, 2905)
-                    : Art.Unlit(Art.Prop(p.look), shadowMat.color, Art.Blend.Multiply, 2900);
+                shadowMats[p.look] = m = Art.Unlit(Art.Prop(p.look), shadowMat.color, Art.Blend.Multiply, 2900);
             return m;
         }
 
@@ -190,15 +186,7 @@ namespace ShadowSet
                 shadowRenderers.Add(q.GetComponent<MeshRenderer>());
             }
 
-            // a burning lamp: a hot white circle on the wall in front of each bulb, too bright for
-            // a shadow to survive. drawn under the shadows, so gauze shade visibly dims it
-            spotQuads.Clear(); spotCores.Clear(); thornHalos.Clear();
-            if (level.hotspot > 0)
-                foreach (var l in level.lamps)
-                {
-                    spotQuads.Add(Art.Quad("Hotspot", levelRoot, Art.Unlit(Art.HotDisc, new Color(1, 0.93f, 0.75f, 0.7f), Art.Blend.Add, 2880)).transform);
-                    spotCores.Add(Art.Quad("HotspotGlow", levelRoot, Art.Unlit(Art.Glow, new Color(1, 0.75f, 0.4f, 0.45f), Art.Blend.Add, 2881)).transform);
-                }
+            thornHalos.Clear();
             haloMat = Art.Unlit(Art.Halo, new Color(1, 0.12f, 0.08f, 0.5f), Art.Blend.Add, 2899);
             for (int li = 0; li < level.lamps.Length; li++)
                 foreach (var p in level.props)
@@ -365,15 +353,7 @@ namespace ShadowSet
                     }
                 }
 
-            // spotlights (some of them sweep about), and the thorns' warning glow
-            for (int i = 0; i < spotQuads.Count; i++)
-            {
-                float r = level.hotspot, flick = 1 + Mathf.Sin(Time.time * 17 + i) * 0.015f;
-                spotQuads[i].position = W(lamps[i].x, lamps[i].y, 0.02f);
-                spotQuads[i].localScale = Vector3.one * (2 * r * 1.08f * flick);
-                spotCores[i].position = W(lamps[i].x, lamps[i].y, 0.025f);
-                spotCores[i].localScale = Vector3.one * (4.2f * r);
-            }
+            // the thorns' warning glow
             int hi = 0;
             for (int li = 0; li < lamps.Length; li++)
                 foreach (var p in level.props)

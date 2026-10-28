@@ -29,14 +29,6 @@ namespace ShadowSet
             };
         }
 
-        // a see-through gauze cut-out: its shadow isn't solid, but it's shade from the spotlights
-        static PropDef Gauze(string look, float d, float D, float lx, float ly, float sx, float sy, float sw, float sh, int tint = 1)
-        {
-            var g = Cut(look, d, D, lx, ly, sx, sy, sw, sh, tint);
-            g.gauze = true;
-            return g;
-        }
-
         static PropDef Moving(PropDef p, float sx, float sy, float period, float phase = 0)
         {
             p.swing = P(sx, sy); p.period = period; p.phase = phase;
@@ -127,43 +119,43 @@ namespace ShadowSet
                 lamps = new[] { new LampDef(24, 15, 12, B(8, 3, 16, 12)) },
                 keys = new[] { B(6.2f, 14.8f, 0.8f, 0.8f), B(13f, 2.7f, 0.8f, 0.8f), B(8f, 9.9f, 0.8f, 0.8f) }
             },
-            // 6. the lamp burns. the bright circle right in front of the bulb scorches the cat, so
-            // riding the bridge brings you through your own light, and the lamp's rail stops
-            // before you can dodge it. a gauze veil hangs over part of the bridge: in front of
-            // the bulb, it throws shade across the hot circle. stand under it as the light passes
+            // 6. one cut-out of a whole staircase, moving as one piece. climb it, carry it over the
+            // wall, then (while it's moving) hop down a step to slip under the thorns and back up
+            // for the door. or lower the whole staircase to slip under: both take some thought
             new LevelDef
             {
-                name = "Limelight",
-                tips = new[] { "You're a shadow, and the bright circle in front of the bulb burns!", "Gauze throws shade you can stand in. Keep under the veil as the light passes." },
+                name = "Puppet Stairs",
+                tips = new[] { "One cut-out, three steps. Climb it, then carry it with the lamp.", "Can't fit under the thorns? Hop down a step while it moves." },
                 start = P(2, 2.5f),
-                exit = B(29.6f, 2.5f, 1.4f, 2.2f),
-                shelves = new[] { B(0, 2, 9, 0.5f), B(23, 2, 9, 0.5f) },
+                exit = B(24.8f, 15.5f, 1.4f, 2.2f),
+                shelves = new[] { B(0, 2, 4, 0.5f), B(13, 0, 1, 11), B(24, 15, 3, 0.5f) },
                 props = new[]
                 {
-                    Cut("bridge", 6, 12, 28, 3.5f, 9, 1.2f, 7, 1.3f, 0),
-                    Gauze("veil", 6, 12, 28, 3.5f, 11.5f, 2.3f, 5.7f, 3.5f)
+                    new PropDef { look = "crate", depth = 6, tint = 2, parts = new[] { Step(4, 1.2f), Step(7, 3.2f), Step(10, 5.2f) } },
+                    Cut("thorns", 3, 12, 16, 9.5f, 21, 11.1f, 2.5f, 1, 4, true)
                 },
-                hotspot = 2.2f,
-                lamps = new[] { new LampDef(28, 3.5f, 12, B(21, 3.5f, 9, 0)) },
-                keys = new[] { B(20.2f, 3.85f, 0.8f, 0.8f), B(16.3f, 5.9f, 0.8f, 0.8f), B(27.4f, 5.4f, 0.8f, 0.8f) }
+                lamps = new[] { new LampDef(24, 14, 12, B(4, 5.5f, 24, 8.5f)) },
+                keys = new[] { B(11, 9.2f, 0.8f, 0.8f), B(23.5f, 9.6f, 0.8f, 0.8f), B(31, 16.6f, 0.8f, 0.8f) }
             },
-            // 6. the lamp comes nearer or goes further. near, the shadows swell outwards from it;
-            // a plank becomes a bridge, a scrap becomes a lift, and you have to keep to the middle of it
+            // 7. zoom. the lamp stays put and only comes nearer or goes further: near, every shadow
+            // swells outwards from it. grow the bridge, shrink it again from the middle so the cloud
+            // comes down to you, then ride the cloud up, keeping to its middle away from the thorns
             new LevelDef
             {
                 name = "Close-Up",
-                tips = new[] { "Scroll (or Q and E) to bring the lamp nearer: shadows grow.", "Shadows grow outwards from the lamp. Stay near the middle!" },
+                tips = new[] { "Scroll (or Q and E): the lamp comes nearer and every shadow grows.", "Shadows grow outwards from the lamp. Keep to the middle!" },
                 start = P(2, 4.5f),
-                exit = B(18.5f, 14.5f, 1.4f, 2.2f),
-                shelves = new[] { B(0, 4, 6.6f, 0.5f), B(25, 4, 7, 0.5f), B(17, 14, 6, 0.5f) },
+                exit = B(7.8f, 14.9f, 1.4f, 2.2f),
+                shelves = new[] { B(0, 4, 6.6f, 0.5f), B(6.5f, 14.4f, 5.5f, 0.5f) },
                 props = new[]
                 {
                     Prop("bridge", 6, 0, B(13, 3.2f, 6, 0.3f)),
-                    Prop("cloud", 7.5f, 1, B(26.4f, 4.1f, 1.2f, 0.15f)),
-                    Prop("thorns", 4, 4, B(27.92f, 7.05f, 1.24f, 1.05f), true)
+                    Prop("cloud", 7.5f, 1, B(15.4f, 4.375f, 1.2f, 0.44f), false, 3),
+                    Prop("thorns", 4, 4, B(16.64f, 6.57f, 0.95f, 0.63f), true),
+                    Prop("thorns", 4, 4, B(14.41f, 6.57f, 0.95f, 0.63f), true)
                 },
-                lamps = new[] { new LampDef(16, 3, 20, B(12, 3, 16, 0), 8.5f, 20) },
-                keys = new[] { B(11.6f, 7.1f, 0.8f, 0.8f), B(30.6f, 15.2f, 0.8f, 0.8f), B(15.6f, 3.2f, 0.8f, 0.8f) }
+                lamps = new[] { new LampDef(16, 3, 20, B(16, 3, 0, 0), 8.5f, 20) },
+                keys = new[] { B(11.6f, 7.1f, 0.8f, 0.8f), B(25.4f, 6, 0.8f, 0.8f), B(18.6f, 16.5f, 0.8f, 0.8f) }
             },
             // 7. two lamps, one each side. each throws its own shadow of the same cut-out, so
             // you park one lamp to hold a shadow still, and carry on with the other
@@ -222,6 +214,13 @@ namespace ShadowSet
                 keys = new[] { B(4.6f, 13f, 0.8f, 0.8f), B(13f, 13.4f, 0.8f, 0.8f), B(28.6f, 17.1f, 0.8f, 0.8f) }
             },
         };
+
+        // a step of Puppet Stairs: where its shadow is with the lamp at (24, 14), 12 from the wall
+        static Box Step(float sx, float sy)
+        {
+            const float k = 2, lx = 24, ly = 14;
+            return B(lx + (sx - lx) / k, ly + (sy - ly) / k, 3 / k, 1.3f / k);
+        }
 
         static PropDef Prop(string look, float d, int tint, Box part, bool thorn = false, float chunkScale = 2)
         {

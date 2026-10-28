@@ -10,26 +10,6 @@ namespace ShadowSet.Tools
         // the solution: collect every key, then out through the door
         static Bot Keys(int level, params StepFn[] steps) { return new Bot(level, "solution, every key", true, steps); }
 
-        // where the lamp has to be for a prop's shadow (part 0) to be centred on the hero, with a given offset
-        static V2 LampFor(Sim s, int prop, float offY)
-        {
-            var p = s.level.props[prop]; var l = s.lamps[0]; float k = Sim.Scale(l, p); var part = p.parts[0];
-            float cx = s.hero.x + Hero.W / 2, cy = s.hero.y + offY;
-            // the shadow's centre is l + (partCentre - l) * k; solve for l
-            float pcx = part.x + part.w / 2, pcy = part.y + part.h / 2;
-            return new V2((cx - pcx * k) / (1 - k), (cy - pcy * k) / (1 - k));
-        }
-        // keep the veil's shade over the hero
-        static StepFn Shade(int prop, float offY, Func<Sim, bool> until, float move = 0)
-        {
-            return Until(until, (s, b) => { var l = LampFor(s, prop, offY); b.lx = l.x; b.ly = l.y; return new Cmd { move = move }; });
-        }
-        // walk somewhere, keeping the veil's shade over the hero all the way
-        static StepFn ShadedGoTo(int prop, float offY, float x)
-        {
-            return Until(s => System.Math.Abs(HX(s) - x) < 0.08f && s.hero.grounded,
-                (s, b) => { var l = LampFor(s, prop, offY); b.lx = l.x; b.ly = l.y; float dx = x - HX(s); return new Cmd { move = System.Math.Abs(dx) < 0.08f ? 0 : System.Math.Sign(dx) * (System.Math.Abs(dx) < 0.4f ? 0.35f : 0.6f) }; });
-        }
         // is that prop's shadow on its way up?
         static bool Rising(Sim s, int prop) { var p = s.level.props[prop]; return Sim.ShadowOf(s.lamps[0], p, p.parts[0], s.time + 0.05f).y > Sim.ShadowOf(s.lamps[0], p, p.parts[0], s.time).y; }
         static Box Shadow(Sim s, int prop, int lamp = 0) { foreach (var o in s.solids) if (o.lamp == lamp && o.prop == prop) return o.box; return new Box(); }
@@ -89,22 +69,19 @@ namespace ShadowSet.Tools
             new Bot(4, "up the right of the maze", false,
                 Lamp(24, 15), GoTo(8.8f), Lamp(14, 15), Lamp(14, 3), Lamp(8, 3), GoTo(24.8f), JumpTo(28, 0.6f), Walk(1, s => false)),
 
-            // ------------------------------------------------ 6. Limelight
+            // ------------------------------------------------ 6. Puppet Stairs
             new Bot(5, "straight for the door, without the keys", false,
-                GoTo(10.5f), Lamp(25, 3.5f), GoTo(18), Lamp(21, 3.5f), GoTo(23.4f), GoTo(30.5f), Walk(1, s => false)),
-            new Bot(5, "jump up out of the shade, in the light", false,
-                GoTo(10.5f), Lamp(25, 3.5f), GoTo(18), Lamp(21, 3.5f), GoTo(21), JumpTo(21, 0.6f), Walk(1, s => false)),
+                GoTo(5.5f), JumpTo(8.5f, 0.5f), JumpTo(11.5f, 0.5f), Lamp(24, 9.5f), Lamp(21, 9.5f), GoTo(13.4f), Lamp(16, 9.5f),
+                JumpTo(17, 0.3f), Lamp(5, 9.5f), JumpTo(30.5f, 0.5f), Lamp(5, 5.5f), GoTo(29.5f), JumpTo(26, 0.5f), Walk(-1, s => false)),
+            new Bot(5, "stay on the top step under the thorns", false,
+                GoTo(5.5f), JumpTo(8.5f, 0.5f), JumpTo(11.5f, 0.5f), Lamp(24, 9.5f), Lamp(21, 9.5f), GoTo(15.5f), Lamp(5, 9.5f), Walk(1, s => false)),
+            new Bot(5, "drop a step before clearing the wall", false,
+                GoTo(5.5f), JumpTo(8.5f, 0.5f), JumpTo(11.5f, 0.5f), Lamp(24, 9.5f), Lamp(21, 9.5f), GoTo(13.4f), JumpTo(12, 0.3f), Lamp(5, 9.5f), Walk(1, s => false)),
 
             // ------------------------------------------------ 7. Close-Up
-            new Bot(6, "straight for the door, without the keys", false,
-                Lamp(16, 3, 9), GoTo(26.5f), GoTo(31.2f),
-                Lamp(27, 3, 9), Lamp(27, 3, 20), JumpTo(27, 0.3f),
-                // zoom in, walking back towards the middle of the lift as it swells
-                Until(s => s.lamps[0].d <= 8.51f, (s, b) => { b.ld = 8.5f; float dx = 27 - HX(s); return new Cmd { move = System.Math.Abs(dx) > 0.15f ? System.Math.Sign(dx) * 0.6f : 0 }; }),
-                GoTo(22.7f), JumpTo(20, 0.6f), Walk(-1, s => false)),
-            new Bot(6, "zoom without keeping to the middle", false,
-                Lamp(16, 3, 9), GoTo(26.5f), GoTo(31.2f),
-                Lamp(27, 3, 9), Lamp(27, 3, 20), JumpTo(27.6f, 0.3f), Lamp(27, 3, 8.5f), GoTo(22.7f), JumpTo(20, 0.6f), Walk(-1, s => false)),
+            new Bot(6, "don't zoom", false, Walk(1, s => false)),
+            new Bot(6, "ride the cloud without keeping to the middle", false,
+                Lamp(16, 3, 9), GoTo(16), Lamp(16, 3, 20), GoTo(13.4f), JumpTo(16.6f, 0.6f), Lamp(16, 3, 9), Walk(-1, s => false)),
 
             // ------------------------------------------------ 8. Double Act
             new Bot(7, "straight for the door, without the keys", false,
@@ -165,13 +142,17 @@ namespace ShadowSet.Tools
                 Lamp(14, 15), Lamp(14, 7), Lamp(22, 7), GoTo(7.1f),
                 Lamp(22, 3), JumpTo(6.6f, 0.6f), Lamp(8, 3), GoTo(24.8f), JumpTo(28, 0.6f), Walk(1, s => false)),
             Keys(5,
-                GoTo(10.5f), Lamp(25, 3.5f), GoTo(16.6f), JumpTo(16.6f, 0.6f), GoTo(18),
-                Lamp(21, 3.5f), GoTo(20.6f), JumpTo(20.6f, 0.02f), GoTo(23.4f), GoTo(25), GoTo(27.4f), JumpTo(27.4f, 0.6f), Walk(1, s => false)),
+                GoTo(5.5f), JumpTo(8.5f, 0.5f), JumpTo(11.5f, 0.5f), JumpTo(11.4f, 0.6f),
+                Lamp(24, 9.5f), Lamp(21, 9.5f), GoTo(13.4f),
+                // carry the stairs past the wall, drop to the middle step, ride under the thorns, climb back up
+                Lamp(16, 9.5f), JumpTo(17, 0.3f), Lamp(5, 9.5f), JumpTo(30.5f, 0.5f),
+                Lamp(5, 5.5f), JumpTo(31.3f, 0.6f), GoTo(29.5f), JumpTo(26, 0.5f), Walk(-1, s => false)),
             Keys(6,
-                Lamp(16, 3, 9), GoTo(12), JumpTo(12, 0.6f), GoTo(16), Lamp(16, 3, 20), Lamp(16, 3, 9), GoTo(26.5f), GoTo(31.2f),
-                Lamp(27, 3, 9), Lamp(27, 3, 20), JumpTo(27, 0.3f),
-                Until(s => s.lamps[0].d <= 8.51f, (s, b) => { b.ld = 8.5f; float dx = 27 - HX(s); return new Cmd { move = System.Math.Abs(dx) > 0.15f ? System.Math.Sign(dx) * 0.6f : 0 }; }),
-                GoTo(30.6f), JumpTo(30.6f, 0.6f), GoTo(22.7f), JumpTo(20, 0.6f), Walk(-1, s => false)),
+                Lamp(16, 3, 9), GoTo(12), JumpTo(12, 0.6f), Lamp(16, 3, 8.5f), GoTo(25.7f), JumpTo(25.8f, 0.6f),
+                GoTo(16), Lamp(16, 3, 20), GoTo(13.4f), JumpTo(16, 0.6f),
+                // zoom back in, walking back towards the middle of the cloud as it swells
+                Until(s => s.lamps[0].d <= 9.01f, (s, b) => { b.ld = 9; float dx = 16 - HX(s); return new Cmd { move = System.Math.Abs(dx) > 0.15f ? System.Math.Sign(dx) * 0.6f : 0 }; }),
+                GoTo(18.6f), JumpTo(18.6f, 0.6f), GoTo(12.8f), JumpTo(9, 0.6f), Walk(-1, s => false)),
             Keys(7,
                 Lamp(28, 14), JumpTo(6, 0.4f), Lamp(28, 4), GoTo(4.45f), JumpTo(4.45f, 0.6f), Lamp(28, 8), Lamp(22, 8),
                 Switch(), Lamp(16, 8), GoTo(18.5f), Lamp(8, 13.4f), GoTo(27.6f),

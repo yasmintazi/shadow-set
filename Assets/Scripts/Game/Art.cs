@@ -6,7 +6,7 @@ namespace ShadowSet
 {
     public static class Art
     {
-        public static Texture2D Paper, Wood, Card, Thorns, Halo, HotDisc, SoftRect, Glow, Moth, Key, Padlock, Door, Curtain, Rope, Dots;
+        public static Texture2D Paper, Wood, Card, Thorns, Halo, SoftRect, Glow, Moth, Key, Padlock, Door, Curtain, Rope, Dots;
         public static Texture2D[] Cat;        // idle, run 1, run 2, jump, fall
         static Shader lit, unlit;
 
@@ -30,8 +30,6 @@ namespace ShadowSet
             Card = Make(128, 128, true, (x, y) => { float n = Fbm(x / 128f * 6, y / 128f * 6, 4, 6); float fib = Fbm(x / 128f * 30, y / 128f * 4, 2, 30); float v = 0.82f + 0.12f * n + 0.06f * fib; return new Color(v, v, v, 1); });
             SoftRect = Make(64, 64, false, (x, y) => { float e = Mathf.Min(Mathf.Min(x + 0.5f, 63.5f - x), Mathf.Min(y + 0.5f, 63.5f - y)); return new Color(1, 1, 1, Mathf.Clamp01(e / 2.5f)); });
             Thorns = MakeThorns();
-            // the lamp's burning circle: flat and white-hot inside, with a short soft edge
-            HotDisc = Make(128, 128, false, (x, y) => { float d = Vector2.Distance(new Vector2(x, y), new Vector2(63.5f, 63.5f)) / 64f; float a = Mathf.Clamp01((1 - d) / 0.08f); return new Color(1, 1, 1, a * (0.85f + 0.15f * (1 - d))); });
             Halo = Make(64, 64, false, (x, y) => { float e = Mathf.Min(Mathf.Min(x + 0.5f, 63.5f - x), Mathf.Min(y + 0.5f, 63.5f - y)) / 16f; e = Mathf.Clamp01(e); return new Color(1, 1, 1, e * e * (3 - 2 * e)); });
             Glow = Make(128, 128, false, (x, y) => { float d = Vector2.Distance(new Vector2(x, y), new Vector2(63.5f, 63.5f)) / 64f; float a = Mathf.Clamp01(1 - d); return new Color(1, 1, 1, a * a * a); });
             Moth = MakeMoth();
@@ -221,12 +219,6 @@ namespace ShadowSet
                     rim = Out(inside, w, h, x + d * 2, y) || Out(inside, w, h, x - d * 2, y) || Out(inside, w, h, x, y + d) || Out(inside, w, h, x, y - d);
                 float grain = 0.88f + 0.12f * Fbm(u * 40, v * 5, 3, 40);
                 float shade = rim ? 0.5f : grain * PropDetail(look, u, v);
-                if (look == "veil" || look == "canopy")
-                {
-                    // gauze: an even, see-through wash with a firmer edge, and the faintest weave
-                    float weave = 0.03f * Mathf.Sin(u * 300) * Mathf.Sin(v * 60);
-                    return new Color(1, 1, 1, rim ? 0.9f : 0.78f + weave);
-                }
                 return new Color(shade, shade, shade, 1);
             });
             props[look] = t;
@@ -254,11 +246,6 @@ namespace ShadowSet
                     // a deck on top of a curved hull that's deepest in the middle
                     float hull = 0.88f * Mathf.Pow(Mathf.Abs(c), 2.2f);
                     return v > hull && !(v < 0.3f && Mathf.Abs(c) > 0.95f);
-                case "veil":
-                case "canopy":
-                    // a sheet of gauze. it fills its box (the shade is the whole box), with just a
-                    // little scalloped hem, so what looks shady is exactly what protects you
-                    return v > 0.04f * Mathf.Abs(Mathf.Sin(u * Mathf.PI * 9));
                 case "scrap":
                     // a torn strip of card
                     return v > 0.25f + 0.2f * Mathf.Abs(Mathf.Sin(u * 37)) * Mathf.Abs(Mathf.Sin(u * 13));
