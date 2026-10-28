@@ -1,0 +1,16 @@
+Library/
+Temp/
+Logs/
+UserSettings/
+obj/
+Builds/
+Tools/obj/
+Tools/SimTest/out/
+Tools/SimTest/*.exe
+*.csproj
+*.sln
+Submission/
+Tools/shots/
+Tools/SimTest/*.exe
+Tools/SimTest/fail_*.png
+*.slnx

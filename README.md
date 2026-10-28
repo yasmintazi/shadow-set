@@ -1,0 +1,120 @@
+# Shadow Set
+
+*A platformer where the light is the level.*
+
+A little theatre: a paper wall, a lamp, and paper cut-outs hanging on rods between them.
+**You move the lamp with the mouse. The cut-outs' shadows on the wall are solid**, and your hero,
+a shadow cat, runs and jumps across them with the keyboard.
+
+Every cut-out is a stage prop (a footbridge, a cloud, a rowing boat, a crate, a bramble) hanging at its own depth, and that one rule drives the whole game:
+
+- **Near the wall**, a cut-out's shadow barely moves when the lamp moves.
+- **Near the lamp**, its shadow is big and swings fast, the opposite way to the lamp.
+- **Lamp closer to the wall:** every shadow swells outwards from it. **Lamp further away:** they shrink back.
+
+So one sweep of the mouse moves every platform in the level at once, each at its own speed. You
+stand on a shadow and ride it, line up shadows into a staircase, steer a lift through a maze of thorny
+shadows, or zoom a scrap of card into a bridge. You do all of this while running and jumping in real time.
+
+![Title](Screenshots/title.png)
+
+## Eleven scenes, one idea each
+
+| Scene | Name | What it teaches |
+|---|---|---|
+| 1 | Curtain Up | Shadows are solid. Stand on one and move the lamp to ride it (jump the post on the way). |
+| 2 | Stage Lift | Lowering the lamp raises shadows. A cut-out nearer the lamp is a faster lift. Don't get squashed. |
+| 3 | Free Hand | The lamp goes anywhere. One shadow gets you over the wall, a slower one gets you under the beam. |
+| 4 | Parallax | Four stepping stones at four depths slide at four speeds. Line each one up with the next. |
+| 5 | Bramble | Thorny cut-outs throw deadly, glowing red shadows. Hung near the wall they hardly move: steer your lift through the maze. |
+| 6 | Limelight | The cat is a shadow, so spotlights burn it. Gauze veils throw shade that isn't solid: park it over one beam, carry it across the next, then ride a boat with its own canopy over the pit. |
+| 7 | Close-Up | Scroll the lamp nearer: a plank becomes a bridge, a scrap becomes a lift. Keep to the middle as it swells, or the thorns get you. |
+| 8 | Double Act | Two lamps, each throwing its own shadow. Park one to hold a shadow still, carry on with the other. |
+| 9 | Clockwork | Cut-outs on motors swing by themselves. Time it, or nudge the lamp to steady them. |
+| 10 | Follow Spot | A spotlight sweeps the whole wall. Climb, hiding under the veil's shade as it passes, and jump only once it's gone by. |
+| 11 | Grand Finale | Three rooms: zoom, move, time, steer. |
+
+Every scene hides **three moths** in risky optional spots: under a shelf you have to ride beneath, on top of a post,
+inside a spotlight where only a short hop keeps you in the shade, at the very top of a swelling lift.
+
+| | |
+|---|---|
+| ![Parallax](Screenshots/parallax.png) | ![Bramble](Screenshots/bramble.png) |
+| ![Limelight](Screenshots/limelight.png) | ![Follow Spot](Screenshots/follow-spot.png) |
+| ![Close-Up, peeking at the light](Screenshots/close-up-peek.png) | ![Grand Finale](Screenshots/finale.png) |
+
+## Controls
+
+| | |
+|---|---|
+| Move the lamp | **Mouse** (or I J K L) |
+| Lamp nearer / further (scene 6 on) | **Scroll wheel** (or Q / E) |
+| Pick up the other lamp (scene 7) | **Right click** (or Tab) |
+| Run | **A D** or **← →** |
+| Jump (hold for higher) | **Space**, W, ↑ or Z |
+| See the light: fade the cut-outs, show the rays | hold **Shift** |
+| Restart / tips / pause / sound | **R** / **H** / **Esc** / **M** |
+| Skip to the next scene | **N** |
+
+## Running it
+
+- **Windows:** `Builds/Windows/ShadowSet.exe`.
+- **Any computer with a browser (Mac, Linux, Chromebook):** host the `Builds/Web` folder on any static
+  host (itch.io, GitHub Pages), or run `py -m http.server` inside it and open http://localhost:8000.
+- **In Unity:** open this folder with Unity 6 (6000.5.10f1). Use the *Shadow Set* menu to build.
+  The scene is empty: the whole game builds itself in code when it starts.
+
+It is made to run smoothly on modest machines:
+- built-in render pipeline
+- five small hand-written shaders, with no real-time shadow maps (the shadows are computed geometry)
+- a few dozen draw calls
+- every texture and sound generated in code, so there are no asset files to load
+
+## How it's built
+
+**The shadows are exact.** A flat cut-out parallel to the wall throws a shadow that is the same shape, scaled
+around the lamp by `k = D / (D − d)`, where `D` is the lamp's distance from the wall and `d` is the
+cut-out's. Every cut-out is made of rectangles, so every shadow is a rectangle, and the platforming is
+crisp box collision. The shadows on screen are drawn from exactly the same numbers.
+
+**Riding a shadow.** When the shadow under you moves, the game works out which point on the cut-out you're
+standing over, and puts you back over that same point after the lamp moves. So you are carried along,
+up, or outwards as it grows. A shadow sweeping into you pushes you, and if there's no way out you're squashed.
+
+**The simulation is separate from Unity.** All the gameplay (`Assets/Scripts/Sim`) is plain C# with no Unity
+types. It steps at a fixed 120 Hz, so it plays the same at any frame rate, and Unity only draws it and reads the
+controls (`Assets/Scripts/Game`).
+
+**Every level is tested by bots** (36 runs in all). `Tools/SimTest` compiles the simulation on its own, using the Mono that ships
+with Unity, and plays:
+- **a scripted solution for every scene**, to prove it can be finished
+- **a run that catches all three moths in every scene**, to prove none of them is out of reach
+- **cheats that must fail** (jumping gaps without lining the stones up, going straight across the bramble,
+  zooming without keeping to the middle, using only one lamp...), to prove each scene's idea is actually needed
+
+It also draws levels as PNGs, including every shadow the lamp can throw, which is how the levels were designed.
+The same solution scripts play the first scene behind the title screen.
+
+```
+Tools/SimTest/build.sh && mono Tools/SimTest/SimTest.exe bots
+```
+
+| Path | What's in it |
+|---|---|
+| `Assets/Scripts/Sim/Sim.cs` | lamps, shadows, the hero's movement, riding, squashing, thorns, spotlights and gauze shade |
+| `Assets/Scripts/Sim/Levels.cs` | the eleven scenes, with the shadow maths in the header |
+| `Assets/Scripts/Sim/Bots/` | the scripted solutions and the cheats that must fail |
+| `Assets/Scripts/Game/` | the theatre (View), the menus and controls (Game), procedural art (Art), synthesised sound (Sfx) |
+| `Assets/Resources/Shaders/` | lamp lighting on everything, and multiply-blended shadows on the paper |
+| `Assets/Editor/Build.cs` | project setup and Windows / WebGL builds |
+| `Tools/SimTest/` | the level-design and testing tool |
+
+## With more time
+
+- Cut-outs that rotate (shadows that tilt into ramps), and coloured gels that make shadows of one colour solid
+- A level editor in the game, drawing cut-outs straight onto the rig
+- Gamepad support: one stick for the cat, the other for the lamp
+
+## Credits
+
+Made by Yasmin Tazi, built with AI assistance (Claude), as encouraged in the brief. Made with Unity.
