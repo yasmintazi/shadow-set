@@ -32,9 +32,9 @@ namespace ShadowSet.EditorTools
             PlayerSettings.resizableWindow = true;
             PlayerSettings.runInBackground = false;
             PlayerSettings.visibleInBackground = true;
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
-            PlayerSettings.WebGL.decompressionFallback = true;
-            PlayerSettings.WebGL.dataCaching = true;
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;   // the most reliable on itch.io and other hosts
+            PlayerSettings.WebGL.decompressionFallback = false;
+            PlayerSettings.WebGL.dataCaching = false;      // browser storage can stall inside itch.io's iframe
             PlayerSettings.WebGL.template = "PROJECT:ShadowSet";   // a full-window page (Assets/WebGLTemplates)
             QualitySettings.antiAliasing = 4;
             AssetDatabase.SaveAssets();
