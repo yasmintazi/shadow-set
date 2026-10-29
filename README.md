@@ -22,18 +22,18 @@ shadows, or zoom a scrap of card into a bridge. You do all of this while running
 
 | Scene | Name | What it teaches |
 |---|---|---|
-| 1 | Curtain Up | Shadows are solid. Stand on one and move the lamp to ride it (jump the post on the way). |
+| 1 | Curtain Up | Shadows are solid. Stand on one and move the lamp to ride it. Two cut-outs at the same depth move as one: ride the low one out (jump the post on the way), then the high one back to the door. |
 | 2 | Stage Lift | Lowering the lamp raises shadows. A cut-out nearer the lamp is a faster lift. Don't get squashed. |
-| 3 | Free Hand | The lamp goes anywhere. One shadow gets you over the wall, a slower one gets you under the beam. |
+| 3 | Free Hand | The lamp goes anywhere. Steer your lift round the first thorn, over the wall, then change to a slower shadow to get under the beam. |
 | 4 | Parallax | Four stepping stones at four depths slide at four speeds. Line each one up with the next. |
-| 5 | Bramble | Thorny cut-outs throw deadly, glowing red shadows. Hung near the wall they hardly move: steer your lift through the maze. |
+| 5 | Bramble | A whole maze of thorns, hung near the wall so they hardly move. Steer your lift through it, right to left. |
 | 6 | Puppet Stairs | One cut-out of a whole staircase, moving as one piece. Climb it, carry it over the wall, then hop down a step while it moves to slip under the thorns (or lower the whole thing). |
-| 7 | Close-Up | The lamp stays put; you only bring it nearer or further. Grow a bridge, shrink it again so a cloud sinks to meet you, then ride the cloud up while walking back to its middle: it grows outwards, and there are thorns either side. |
-| 8 | Double Act | Two lamps, each throwing its own shadow. Park one to hold a shadow still, carry on with the other. |
-| 9 | Clockwork | Cut-outs on motors swing by themselves. Time it, or nudge the lamp to steady them. |
+| 7 | Double Act | Two lamps, each throwing its own shadow into its own half of the room. Park one to step across to the other, then park it again above the thorns to step back. |
+| 8 | Clockwork | Cut-outs on motors swing by themselves. Time it, or nudge the lamp to steady them. |
+| 9 | Close-Up | The lamp stays put; you only bring it nearer or further. Grow a bridge, shrink it again so a cloud sinks to meet you, then ride the cloud up while walking back to its middle: it grows outwards, and there are thorns either side. |
 | 10 | Grand Finale | Three rooms: zoom, move, time, steer. |
 
-**Every scene has three keys, and the door stays padlocked until you have all of them.** They hang where getting them takes thought and timing: under a shelf you can only ride beneath, on top of the ceiling of a lift shaft, tucked under the thorns where only the lower step fits, at the top of a swing, on top of a lift that swells as you zoom in.
+**Every scene has three keys, and the door stays padlocked until you have all of them.** They hang where getting them takes thought and timing: under a shelf you can only ride beneath, at the far end of a ride, on top of the ceiling of a lift shaft, tucked under the thorns where only the lower step fits, at the top of a swing, on top of a lift that swells as you zoom in.
 
 | | |
 |---|---|
@@ -46,7 +46,7 @@ shadows, or zoom a scrap of card into a bridge. You do all of this while running
 | | |
 |---|---|
 | Move the lamp | **Mouse** (or I J K L) |
-| Lamp nearer / further (scene 6 on) | **Scroll wheel** (or Q / E) |
+| Lamp nearer / further (scene 9 on) | **Scroll wheel** (or Q / E) |
 | Pick up the other lamp (scene 7) | **Right click** (or Tab) |
 | Run | **A D** or **← →** |
 | Jump (hold for higher) | **Space**, W, ↑ or Z |
@@ -83,12 +83,12 @@ up, or outwards as it grows. A shadow sweeping into you pushes you, and if there
 types. It steps at a fixed 120 Hz, so it plays the same at any frame rate, and Unity only draws it and reads the
 controls (`Assets/Scripts/Game`).
 
-**Every level is tested by bots** (33 runs in all). `Tools/SimTest` compiles the simulation on its own, using the Mono that ships
+**Every level is tested by bots** (40 runs in all). `Tools/SimTest` compiles the simulation on its own, using the Mono that ships
 with Unity, and plays:
 - **a scripted solution for every scene** that collects all three keys, to prove it can be finished
 - **the old route straight to the door, without the keys**, which must now be stuck at the padlock
-- **cheats that must fail** (jumping gaps without lining the stones up, going straight across the bramble,
-  zooming without keeping to the middle, using only one lamp...), to prove each scene's idea is actually needed
+- **cheats that must fail** (lifting straight through a thorn, jumping gaps without lining the stones up, going straight across
+  the bramble, zooming without keeping to the middle, using only one lamp...), to prove each scene's idea is actually needed
 
 It also draws levels as PNGs, including every shadow the lamp can throw, which is how the levels were designed.
 The same solution scripts play the first scene behind the title screen.

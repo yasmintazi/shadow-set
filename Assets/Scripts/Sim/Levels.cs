@@ -37,17 +37,23 @@ namespace ShadowSet
 
         public static readonly LevelDef[] All =
         {
-            // 1. ride a shadow across. the lamp slides along a rail; its shadow slides the other way
+            // 1. ride a shadow across. the lamp slides along a rail; its shadow slides the other way.
+            // two cut-outs at the same depth move as one: ride the low one out to the right, then
+            // the high one (which always trails behind it) back to the door in the middle
             new LevelDef
             {
                 name = "Curtain Up",
                 tips = new[] { "Move the mouse to slide the lamp. Shadows are solid.", "Stand on a shadow and move the lamp to ride it." },
                 start = P(2, 5.5f),
-                exit = B(29.6f, 7.5f, 1.4f, 2.2f),
-                shelves = new[] { B(0, 5, 4, 0.5f), B(27, 7, 5, 0.5f), B(15.6f, 5.6f, 0.6f, 1.8f) },
-                props = new[] { Cut("bridge", 6, 12, 16, 10, 16, 4.8f, 6, 0.7f) },
+                exit = B(9.3f, 12, 1.4f, 2.2f),
+                shelves = new[] { B(0, 5, 4, 0.5f), B(27, 7, 5, 0.5f), B(15.6f, 5.6f, 0.6f, 1.8f), B(8, 11.5f, 4, 0.5f) },
+                props = new[]
+                {
+                    Cut("bridge", 6, 12, 16, 10, 16, 4.8f, 6, 0.7f),
+                    Cut("cloud", 6, 12, 16, 10, 9, 9.1f, 6, 0.7f, 1)
+                },
                 lamps = new[] { new LampDef(16, 10, 12, B(4, 10, 24, 0)) },
-                keys = new[] { B(15.5f, 8.6f, 0.8f, 0.8f), B(16f, 10.8f, 0.8f, 0.8f), B(27.5f, 5.8f, 0.8f, 0.8f) }
+                keys = new[] { B(15.5f, 7.6f, 0.8f, 0.8f), B(27.5f, 5.8f, 0.8f, 0.8f), B(1, 11.2f, 0.8f, 0.8f) }
             },
             // 2. lifts. the lamp moves up and down; a cut-out nearer the lamp moves faster
             new LevelDef
@@ -65,19 +71,21 @@ namespace ShadowSet
                 lamps = new[] { new LampDef(16, 16, 12, B(16, 2, 0, 14)) },
                 keys = new[] { B(8.5f, 11.8f, 0.8f, 0.8f), B(17f, 16.9f, 0.8f, 0.8f), B(14.2f, 10.6f, 0.8f, 0.8f) }
             },
-            // 3. the lamp goes anywhere. one shadow lifts you over the wall; it can't get under the
+            // 3. the lamp goes anywhere. one shadow lifts you over the wall (round a thorn hung right
+            // against the wall, so it hardly moves: go up, then across); it can't get under the
             // beam on the far side, but the slow one at the bottom can
             new LevelDef
             {
                 name = "Free Hand",
-                tips = new[] { "Now the lamp goes anywhere you like.", "Some shadows can't go everywhere. Change ride when you need to." },
+                tips = new[] { "Now the lamp goes anywhere you like. Steer round the red, thorny shadows!", "Some shadows can't go everywhere. Change ride when you need to." },
                 start = P(2, 4.5f),
                 exit = B(29.6f, 2.5f, 1.4f, 2.2f),
                 shelves = new[] { B(0, 4, 4, 0.5f), B(10, 0, 1, 12), B(8, 14.2f, 9, 0.5f), B(21, 5, 1, 13), B(27, 2, 5, 0.5f) },
                 props = new[]
                 {
                     Cut("boat", 6, 12, 20, 16.5f, 4, 3.8f, 5, 0.7f, 0),
-                    Cut("bridge", 3, 12, 13, 10, 14, 2.8f, 9, 0.7f, 2)
+                    Cut("bridge", 3, 12, 13, 10, 14, 2.8f, 9, 0.7f, 2),
+                    Cut("thorns", 1, 12, 20, 16.5f, 6.8f, 7.4f, 1.8f, 1.2f, 4, true)
                 },
                 lamps = new[] { new LampDef(20, 16.5f, 12, B(6, 3, 14, 13.5f)) },
                 keys = new[] { B(24.2f, 6.6f, 0.8f, 0.8f), B(10.4f, 13.2f, 0.8f, 0.8f), B(4.2f, 15.4f, 0.8f, 0.8f) }
@@ -102,22 +110,22 @@ namespace ShadowSet
                 keys = new[] { B(23f, 14.2f, 0.8f, 0.8f), B(30f, 7.8f, 0.8f, 0.8f), B(19.6f, 12.4f, 0.8f, 0.8f) }
             },
             // 5. thorny branches, hung near the wall so their shadows barely move: a maze. your lift
-            // moves three times as fast as the maze, so you steer it through the gaps
+            // moves three times as fast as the maze, so you steer it through the gaps, right to left
             new LevelDef
             {
                 name = "Bramble",
-                tips = new[] { "Thorny cut-outs throw thorny shadows. Don't touch them!", "Shadows near the wall hardly move. Steer your lift through the maze." },
-                start = P(2, 1.5f),
-                exit = B(28.5f, 15.5f, 1.4f, 2.2f),
-                shelves = new[] { B(0, 1, 4.5f, 0.5f), B(26, 15, 6, 0.5f) },
+                tips = new[] { "A whole bramble! Shadows near the wall hardly move.", "Your lift is quicker than the thorns. Steer it through the maze." },
+                start = P(30, 1.5f),
+                exit = B(2.1f, 15.5f, 1.4f, 2.2f),
+                shelves = new[] { B(27.5f, 1, 4.5f, 0.5f), B(0, 15, 6, 0.5f) },
                 props = new[]
                 {
-                    Cut("cloud", 6, 12, 24, 15, 4.5f, 0.9f, 5, 0.6f, 0),
-                    Cut("thorns", 3, 12, 24, 15, 2, 4.5f, 12, 1, 4, true),
-                    Cut("thorns", 3, 12, 22, 7, 9, 11, 13, 1, 4, true)
+                    Cut("cloud", 6, 12, 8, 15, 22.5f, 0.9f, 5, 0.6f, 0),
+                    Cut("thorns", 3, 12, 8, 15, 18, 4.5f, 12, 1, 4, true),
+                    Cut("thorns", 3, 12, 10, 7, 10, 11, 13, 1, 4, true)
                 },
-                lamps = new[] { new LampDef(24, 15, 12, B(8, 3, 16, 12)) },
-                keys = new[] { B(6.2f, 14.8f, 0.8f, 0.8f), B(13f, 2.7f, 0.8f, 0.8f), B(8f, 9.9f, 0.8f, 0.8f) }
+                lamps = new[] { new LampDef(8, 15, 12, B(8, 3, 16, 12)) },
+                keys = new[] { B(25f, 14.8f, 0.8f, 0.8f), B(18.2f, 2.7f, 0.8f, 0.8f), B(23.2f, 9.9f, 0.8f, 0.8f) }
             },
             // 6. one cut-out of a whole staircase, moving as one piece. climb it, carry it over the
             // wall, then (while it's moving) hop down a step to slip under the thorns and back up
@@ -137,42 +145,28 @@ namespace ShadowSet
                 lamps = new[] { new LampDef(24, 14, 12, B(4, 5.5f, 24, 8.5f)) },
                 keys = new[] { B(11, 9.2f, 0.8f, 0.8f), B(23.5f, 9.6f, 0.8f, 0.8f), B(31, 16.6f, 0.8f, 0.8f) }
             },
-            // 7. zoom. the lamp stays put and only comes nearer or goes further: near, every shadow
-            // swells outwards from it. grow the bridge, shrink it again from the middle so the cloud
-            // comes down to you, then ride the cloud up, keeping to its middle away from the thorns
-            new LevelDef
-            {
-                name = "Close-Up",
-                tips = new[] { "Scroll (or Q and E): the lamp comes nearer and every shadow grows.", "Shadows grow outwards from the lamp. Keep to the middle!" },
-                start = P(2, 4.5f),
-                exit = B(7.8f, 14.9f, 1.4f, 2.2f),
-                shelves = new[] { B(0, 4, 6.6f, 0.5f), B(6.5f, 14.4f, 5.5f, 0.5f) },
-                props = new[]
-                {
-                    Prop("bridge", 6, 0, B(13, 3.2f, 6, 0.3f)),
-                    Prop("cloud", 7.5f, 1, B(15.4f, 4.375f, 1.2f, 0.44f), false, 3),
-                    Prop("thorns", 4, 4, B(16.64f, 6.57f, 0.95f, 0.63f), true),
-                    Prop("thorns", 4, 4, B(14.41f, 6.57f, 0.95f, 0.63f), true)
-                },
-                lamps = new[] { new LampDef(16, 3, 20, B(16, 3, 0, 0), 8.5f, 20) },
-                keys = new[] { B(11.6f, 7.1f, 0.8f, 0.8f), B(25.4f, 6, 0.8f, 0.8f), B(18.6f, 16.5f, 0.8f, 0.8f) }
-            },
-            // 7. two lamps, one each side. each throws its own shadow of the same cut-out, so
-            // you park one lamp to hold a shadow still, and carry on with the other
+            // 7. two lamps, one each side. each throws its own shadow of the same cut-out, and
+            // each shadow only reaches its own half: they just meet over the wall. park the left
+            // one to step across to the right one, then park it again above the thorns (which hang
+            // right against the wall, out of reach of either shadow alone) to step back for the door
             new LevelDef
             {
                 name = "Double Act",
                 tips = new[] { "Two lamps! Right click (or Tab) to pick up the other one.", "The lamp you put down stays put, and so does its shadow." },
                 start = P(2, 3.5f),
-                exit = B(29.3f, 15, 1.4f, 2.2f),
-                shelves = new[] { B(0, 3, 4, 0.5f), B(15, 0, 1, 11), B(27, 14.5f, 5, 0.5f) },
-                props = new[] { Prop("bridge", 6, 3, B(16, 9.2f, 2.5f, 0.3f)) },
+                exit = B(1, 15.5f, 1.4f, 2.2f),
+                shelves = new[] { B(0, 3, 4, 0.5f), B(15, 0, 1, 11), B(0, 15, 3.5f, 0.5f) },
+                props = new[]
+                {
+                    Prop("bridge", 6, 3, B(16, 9.2f, 2.5f, 0.3f)),
+                    Cut("thorns", 0.5f, 12, 24, 9, 1, 12.6f, 16, 0.6f, 4, true)
+                },
                 lamps = new[]
                 {
-                    new LampDef(28, 14, 12, B(16, 4, 12, 10)),
+                    new LampDef(28, 14, 12, B(21, 4, 7, 10)),
                     new LampDef(10, 14, 12, B(4, 4, 12, 10))
                 },
-                keys = new[] { B(15.1f, 15.5f, 0.8f, 0.8f), B(3.6f, 16.1f, 0.8f, 0.8f), B(27.5f, 6f, 0.8f, 0.8f) }
+                keys = new[] { B(27.5f, 6f, 0.8f, 0.8f), B(29.6f, 16.6f, 0.8f, 0.8f), B(15.6f, 16.4f, 0.8f, 0.8f) }
             },
             // 8. cut-outs on motors swing all by themselves. time your jumps, or nudge the lamp
             // to hold a shadow still for a moment
@@ -193,7 +187,27 @@ namespace ShadowSet
                 lamps = new[] { new LampDef(16, 10, 12, B(14, 9, 4, 2)) },
                 keys = new[] { B(21.6f, 14.6f, 0.8f, 0.8f), B(4.8f, 11.3f, 0.8f, 0.8f), B(29.2f, 16.3f, 0.8f, 0.8f) }
             },
-            // 9. the finale: three rooms. zoom the lift over the first wall, zoom the bridge across
+            // 9. zoom. the lamp stays put and only comes nearer or goes further: near, every shadow
+            // swells outwards from it. grow the bridge, shrink it again from the middle so the cloud
+            // comes down to you, then ride the cloud up, keeping to its middle away from the thorns
+            new LevelDef
+            {
+                name = "Close-Up",
+                tips = new[] { "Scroll (or Q and E): the lamp comes nearer and every shadow grows.", "Shadows grow outwards from the lamp. Keep to the middle!" },
+                start = P(2, 4.5f),
+                exit = B(7.8f, 14.9f, 1.4f, 2.2f),
+                shelves = new[] { B(0, 4, 6.6f, 0.5f), B(6.5f, 14.4f, 5.5f, 0.5f) },
+                props = new[]
+                {
+                    Prop("bridge", 6, 0, B(13, 3.2f, 6, 0.3f)),
+                    Prop("cloud", 7.5f, 1, B(15.4f, 4.375f, 1.2f, 0.44f), false, 3),
+                    Prop("thorns", 4, 4, B(16.64f, 6.57f, 0.95f, 0.63f), true),
+                    Prop("thorns", 4, 4, B(14.41f, 6.57f, 0.95f, 0.63f), true)
+                },
+                lamps = new[] { new LampDef(16, 3, 20, B(16, 3, 0, 0), 8.5f, 20) },
+                keys = new[] { B(11.6f, 7.1f, 0.8f, 0.8f), B(25.4f, 6, 0.8f, 0.8f), B(18.6f, 16.5f, 0.8f, 0.8f) }
+            },
+            // 10. the finale: three rooms. zoom the lift over the first wall, zoom the bridge across
             // the second under a thorn piston, then steer the fast lift round a bramble to the door
             new LevelDef
             {
